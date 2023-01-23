@@ -19,7 +19,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['username', 'first_name', 'last_name', 'group', 'email', 'password']
 
     def create(self, validated_data):
-        user = CustomUser.objects.create(**validated_data)
+        user = CustomUser.objects.create_user(**validated_data)
         if not user:
             return serializers.ValidationError({'error': USER_REGISTER_ERROR})
         return user
@@ -28,7 +28,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'password']
+        fields = ['email', 'password']
         extra_kwargs = {
             'email': {'required': True},
             'password': {'required': True},
@@ -37,17 +37,15 @@ class LoginSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
+        
         if email and password:
             user = CustomUser.objects.filter(email=email).last()
-            if user is not None:
-                user.set_password(password)
-                user.save()
             # authenticate user by username and password after
             # conversion of password into hash format
-                auth_user = authenticate(username=user.username, password=password)
-                if auth_user is None:
-                    raise serializers.ValidationError(USER_NOT_FOUND)
-                attrs['user'] = auth_user
+            auth_user = authenticate(username=user.username, password=password)
+            if auth_user is None:
+                raise serializers.ValidationError(USER_NOT_FOUND)
+            attrs['user'] = auth_user
         return attrs
 
 
