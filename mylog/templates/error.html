@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load rest_framework%}
+
+{% block content %}
+<section class="mt-5" style="background-color: #dee2e68c; border-radius:70px;">
+<div class="d-flex justify-content-center" style="height:45rem;">
+    <div class="page-bg">
+    <div class="wrapper" id="wrapper">
+        <!-- Sidebar and content section -->
+        <main>
+            <div class="inner-wrapper">
+                <div class="main-content error_403-content">
+                    <!-- inner content section starts -->
+                    <div class="main-content-wrapper box-border">
+                        <div class="error-page flex-container">
+                            <div class="error-page-content">
+                                <div class="img">
+                                    <img src="{% static 'images/403-image.svg' %}" style="margin-top:50%;" alt="Error">
+                                </div>
+                                <h3>Access Denied</h3>
+                                <p>Required login to access this page </p>
+                                <a href="{% url 'mylog:login' %}" class="btn btn-primary fw-bold mt-3">Go to Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- inner content section ends -->
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</div>
+</section>
+
+{% endblock %}

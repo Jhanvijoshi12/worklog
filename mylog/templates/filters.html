@@ -1,0 +1,75 @@
+{% load rest_framework %}
+{% load static %}
+{% if request.resolver_match.url_name == 'daily_log_list' %}
+<form method="get" action="{% url 'mylog:daily_log_list' %}">
+    <div class="filter-box-list flex-container">
+    <div class="row">
+        <div class="filter-box">
+          <div class="form-group ">
+              <label for="id_project" class="fw-bold fs-5">Project</label>
+              <input type="text" name="project" placeholder="Search by project"
+                     style="width:30%; height:45px;" class="form-control inputDate" autocomplete="off">
+          </div>
+      </div>
+    </div>
+        <div class="apply-filter-btn mt-3">
+          <button class="btn btn-primary" type="submit">Search</button>
+      </div>
+    </div>
+</form>
+
+{% else %}
+<form method="get" action="{% url 'mylog:list' %}">
+    <div class="filter-box-list flex-container">
+    <div class="row">
+      <div class="filter-box">
+          <div class="form-group ">
+              <label for="id_filter_date" class="fw-bold fs-5">Date</label>
+              <input name="date" type="text" id="id_filter_date" placeholder="Date"
+                     style="width:30%; height:45px;" class="form-control inputDate" autocomplete="off"/>
+          </div>
+      </div>
+      <div class="filter-box">
+          <div class="form-group ">
+              <label for="id_user" class="fw-bold fs-5">User</label>
+              <input type="text" name="user" placeholder="Search by user"
+                     style="width:30%; height:45px;" class="form-control inputDate" autocomplete="off">
+          </div>
+      </div>
+        <div class="filter-box">
+          <div class="form-group ">
+              <label for="id_project" class="fw-bold fs-5">Project</label>
+              <input type="text" name="project" placeholder="Search by project"
+                     style="width:30%; height:45px;" class="form-control inputDate" autocomplete="off">
+          </div>
+      </div>
+    </div>
+        <!-- button for creating csv file -->
+            <input type="hidden" name="create_csv" value="True">
+            <button class="btn btn-success" style="width:12%; height:25%; margin-left:80%"
+                    type="submit">Download CSV</button>
+        <!-- end button for creating csv file -->
+
+      <!-- filter-box ends -->
+      <div class="apply-filter-btn mt-3">
+          <button class="btn btn-primary" type="submit">Search</button>
+      </div>
+  </div>
+</form>
+
+{% endif %}
+
+
+
+
+<!--<div class="dropdown mt-3">-->
+<!--      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--        Filter option-->
+<!--      </button>-->
+<!--      <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton2">-->
+<!--        <input type="text" name="user" placeholder="Search by user">-->
+<!--        <input type="text" name="date" id="id_filter_date" placeholder="Search by date">-->
+<!--        <input type="text" name="project" placeholder="Search by Project">-->
+<!--        <button type="submit" class="btn btn-primary">Search</button>-->
+<!--      </ul>-->
+<!--    </div>-->

@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load rest_framework %}
+{% load static %}
+{% block content %}
+
+<!-- nav bar section starts -->
+<nav class="navbar navbar-light bg-light">
+  <div class="container-fluid">
+      <header class="head">
+          <img id="log_image" src="https://sp-ao.shortpixel.ai/client/to_auto,q_lossless,ret_img,w_1578,h_880/https://www.soldevelo.com/blog/wp-content/uploads/How-to-utilize-Jiras-time-tracking-best1.jpeg" alt=""
+               style="width:120px;margin-right:26px;" class="d-inline-block align-text-top">
+          <h1 id="header_id" class="fw-bold text-uppercase">WorkLog</h1>
+      </header>
+      <div class="order-1">
+        <a href="{% url 'mylog:get_admin_option' %}" class="btn btn-warning fw-bold">Go Back</a>
+          <div class="nav-right">
+                <div class="navbar-nav ml-auto">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle profileDropdown" id="profileDropdown" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            {% if request.user %}
+                                <img src="{% static 'images/single-user-icon.svg' %}" alt="profile-pic">
+                                <span style="margin-left:10px;">{{ request.user.username }}</span>
+                            {% endif %}
+                        </a>
+                        <div class="dropdown-menu user-profile" aria-labelledby="profileDropdown">
+                            <ul style="opacity:1; transition: opacity 0.5s ease-in-out">
+                                {% if request.user.is_authenticated %}
+                                    <li><a href="{% url 'mylog:daily_log_list' %}">
+                                        <span>My Tasks</span></a>
+                                    </li>
+                                    <li>
+                                        <form method="post" action="{% url 'mylog:logout' %}">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-success btn-sm" value="Logout">
+                                        </form>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+          </div>
+      </div>
+  </div>
+</nav>
+
+<!-- nav bar section ends -->
+
+<section class="" style="background-color: #6c757d57;">
+    <div class="container">
+            <h2 class="fw-bold italic" style="margin-left:50px">Welcome, Here's the list of Daily Logs of all users</h2>
+                <div class="filter-option">
+                    <button class="btn btn-filter btn-primary fs-5 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target=".filter-list" aria-expanded="false" aria-controls="filter-list">
+                        Filter
+                        <span>
+                            <img src="{% static 'images/filter-arrow.svg' %}" alt="Filter">
+                        </span>
+                    </button>
+                    <button type="button" class="clear-filter btn-sm btn-secondary fs-10 fw-bold"
+                    style="margin-left:10px;">Clear all</button>
+                </div>
+
+        <a href="{% url 'mylog:add_log' %}" class="btn btn-warning mt-2" data-bs-toggle="modal" type="button"
+                    data-bs-target="#addTaskModal" onclick="addTask({{user.id}})">{{ user.username }} - Create Your Daily Update</a>
+        <!--inner content starts -->
+        <div class="main-content-wrapper box-border admin-user-wrap">
+            {% if users %}
+                <div class="collapse filter-list mt-2">
+                    {% include "filters.html" %}
+                </div>
+
+                <div class="list-grid-content">
+                    <table id="userTable" class="table table-light table-hover table-responsive-md mt-5">
+                        <thead>
+                        <tr class="text-uppercase">
+                            <th style="color: #0d6efd; background-color:#6c757d66;">ID</th>
+                            <th style="color: #0d6efd; background-color:#6c757d66;">UserName</th>
+                            <th style="color: #0d6efd; background-color:#6c757d66;">Email</th>
+                            <th style="color: #0d6efd; background-color:#6c757d66;">Date</th>
+                            <th style="color: #0d6efd; background-color:#6c757d66;">ProjectName</th>
+                            <th style="color: #0d6efd; background-color:#6c757d66;">Task</th>
+                            <th style="color: #0d6efd; background-color:#6c757d66;">Description</th>
+                            <th style="color: #0d6efd; background-color:#6c757d66;">Start Time</th>
+                            <th style="color: #0d6efd; background-color:#6c757d66;">End Time</th>
+                            <th style="color: #0d6efd; background-color:#6c757d66;">Total Hours</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for obj in users %}
+                        <tr class="clickable-row-details" title="View">
+                            <td style="width: 50px; height: 50px;">{{obj.id}}</td>
+                            <td style="width: 50px; height: 50px;">{{obj.user}}</td>
+                            <td style="width: 50px; height: 50px;">{{obj.email}}</td>
+                            <td style="width: 80px; height: 50px;">{{obj.date}}</td>
+                            <td style="width: 50px; height: 50px;">{{obj.project_name}}</td>
+                            <td style="width: 50px; height: 50px;">{{obj.task}}</td>
+                            <td style="width: 50px; height: 50px;">{{obj.description}}</td>
+                            <td style="width: 50px; height: 50px;">{{obj.start_time}}</td>
+                            <td style="width: 50px; height: 50px;">{{obj.end_time}}</td>
+                            <td style="width: 50px; height: 50px;">{{obj.total_hours}}</td>
+                        </tr>
+
+                        </tbody>
+                        {% endfor %}
+                    </table>
+                </div>
+
+            <!-- Pagination div starts -->
+        {% if users.has_other_pages %}
+        <nav aria-label="Page navigation example">
+            <span class="page-itme">{{ users }}</span>
+              <ul class="pagination">
+                 {% if users.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ users.previous_page_number }}"
+                           style="background-color:rgb(13 110 253 / 25%);">Previous
+                        <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                 {% endif %}
+                  {% for page in users.page_range %}
+                        {% if page == users.number %}
+                             <li class="page-item">{{ page }}</li>
+                        {% else %}
+                             <li class="page-item">
+                                 <a class="page-link" href="?page={{ page }}">{{ page }}</a></li>
+                        {% endif %}
+                  {% endfor %}
+                  {% if users.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" style="background-color:rgb(13 110 253 / 25%);" href="?page={{ users.next_page_number }}">Next
+                        <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                  {% endif %}
+              </ul>
+        </nav>
+        {% endif %}
+        <!-- Pagination div ends -->
+        </div>
+    </div>
+</section>
+<!--inner content ends -->
+
+<!-- Add task modal starts -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-uppercase" id="addTaskModalLabel">Add Daily log</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+            <div class="col fw-bold fs-5">
+            <label for="user" class="col-form-label">User :</label>
+            <input type="text" class="form-control" id="form-user" value="{{user.username}}">
+            </div>
+            <div class="col fw-bold fs-5">
+            <label for="project" class="col-form-label">Project Name :</label>
+            <input type="text" class="form-control" id="form-project">
+            </div>
+          <div class="col fw-bold fs-5">
+            <label for="date" class="col-form-label">Date :</label>
+            <input type="date" class="form-control" id="form-date">
+          </div>
+            <div class="col fw-bold fs-5">
+            <label for="task" class="col-form-label">Task title :</label>
+            <input type="text" class="form-control" id="task-name">
+          </div>
+          <div class="col fw-bold fs-5">
+            <label for="description" class="col-form-label">Description :</label>
+            <textarea class="form-control" id="description-text"></textarea>
+          </div>
+            <div class="row">
+                <div class="col fw-bold fs-5">
+                    <label for="start" class="col-form-label">Start Time :</label>
+                    <input type="time" class="form-control" id="start-time">
+                </div>
+                <div class="col fw-bold fs-5">
+                    <label for="end" class="col-form-label">End Time:</label>
+                    <input type="time" class="form-control" placeholder="hrs:min" id="end-time">
+              </div>
+            </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="saveDailyLog()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Add task modal ends -->
+
+{% else %}
+<div class="container mt-5">
+    <div class="no-user-page flex-container mb-3">
+        <div class="empty-page-content">
+            <div class="img">
+                <img src="https://www.pepper-designs.com/blog/images/uploads/326149038oops-word-concept_23-2147844793.jpg" alt="Empty">
+            </div>
+            <p class="fw-bold text-uppercase fs-4 mt-3">There’re no List from this search for you to see yet</p>
+            <a href="{% url 'mylog:list' %}" class="btn btn-primary text-uppercase">Go Back</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script type="text/javascript" src="{% static 'js/user.js' %}"></script>
+{% endblock extra_js %}
