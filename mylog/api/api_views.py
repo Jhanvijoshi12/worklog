@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from knox.views import LoginView
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -18,12 +18,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from mylog.api.serializers import (
     LoginSerializer, UserLogSerializer, RegisterSerializer,
-    ListUserSerializer, TaskSerializer, ProjectSerializer, UserDailyLogListSerializer
+    ListUserSerializer, TaskSerializer, ProjectSerializer, UserDailyLogListSerializer,
 )
 from mylog.constants import (
     USER_CREATED, USER_LOGIN,
     INVALID_LOGIN_CREDENTIAL, USER_LOG_CREATED,
-    INVALID_DETAILS, DAILY_LOG_CSV_COLUMNS, LOGIN_REQUIRED
+    INVALID_DETAILS, DAILY_LOG_CSV_COLUMNS, LOGIN_REQUIRED, UNAUTHORIZED_USER
 )
 from mylog.models import UserDailyLogs, Project, Task
 
@@ -37,9 +37,12 @@ class GetOptionView(APIView):
     def get(self, request):
         serializer = TaskSerializer()
         if request.user.is_authenticated:
-            return Response({'serializer': serializer, 'style': serializer.style})
+            if request.user.groups.filter(name='Admin').exists():
+                return Response({'serializer': serializer, 'style': serializer.style})
+            return Response({'status': 'failed', 'errors': UNAUTHORIZED_USER,
+                             'style': serializer.style}, template_name='error.html')
         return Response({'status': 'failed', 'errors': LOGIN_REQUIRED,
-                         'style': serializer.style}, template_name='error.html')
+                         'style': serializer.style}, template_name='401_error_page.html')
 
 
 class RegistrationView(APIView):
@@ -104,6 +107,18 @@ class LogoutView(APIView):
         return redirect(reverse('mylog:login'))
 
 
+class DashBoardView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'dashboard.html'
+
+    def get(self, request):
+        user = request.user
+        queryset = UserDailyLogs.objects.filter(user=user).last()
+        serializer = ListUserSerializer(queryset)
+        return Response({'serializer': serializer.data, 'style': serializer.style},
+                        template_name='dashboard.html')
+
+
 class UserDailyLogsView(APIView):
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'daily_log_update.html'
@@ -114,7 +129,7 @@ class UserDailyLogsView(APIView):
             return Response({'serializer': serializer, 'style': serializer.style})
         else:
             return Response({'status': 'failed', 'errors': LOGIN_REQUIRED,
-                             'style': serializer.style}, template_name='error.html')
+                             'style': serializer.style}, template_name='401_error_page.html')
 
     def post(self, request, *args, **kwargs):
         data = request.data.copy()
@@ -128,6 +143,7 @@ class UserDailyLogsView(APIView):
             return redirect('mylog:daily_log')
         else:
             errors = serializer.errors
+            errors = {key.upper(): value for key, value in errors.items()}
             return Response({'serializer': serializer, 'errors': errors, 'style': serializer.style},
                             template_name='daily_log_update.html')
 
@@ -186,37 +202,43 @@ class ListUserView(ListAPIView):
     def get(self, request, *args, **kwargs):
         serializer = ListUserSerializer()
         if request.user.is_authenticated:
+            page = self.request.GET.get('page')
             queryset = UserDailyLogs.objects.all()
-            csv_obj = self.request.GET.get('create_csv')
-            user = self.request.GET.get('user')
-            project = self.request.GET.get('project')
-            date = self.request.GET.get('date', None)
-            if user or project or date or csv_obj:
-                if date in EMPTY_VALUES:
+            data = {
+                'user': self.request.GET.get('user'),
+                'project': self.request.GET.get('project'),
+                'date': self.request.GET.get('date'),
+                'create_csv': self.request.GET.get('create_csv')
+            }
+
+            if data['user'] or data['project'] or data['date'] or data['create_csv']:
+                if data['date'] in EMPTY_VALUES:
                     date_obj = None
                 else:
-                    date_obj = datetime.datetime.strptime(date, '%m/%d/%Y').date()
+                    date_obj = datetime.datetime.strptime(data['date'], '%m/%d/%Y').date()
                 # if filter applied to any of the below option.
-                if user:
-                    queryset = queryset.filter(user__username__icontains=user)
-                if project:
-                    queryset = queryset.filter(project_name__name__icontains=project)
+                if data['user']:
+                    queryset = queryset.filter(user__username__icontains=data['user'])
+                if data['project']:
+                    queryset = queryset.filter(project_name__name__icontains=data['user'])
                 if date_obj:
                     queryset = queryset.filter(date=date_obj)
                 # when click ond download csv this function is
                 # called and if not and main queryset is returned
-                if csv_obj:
+                if data['create_csv'] != 'False':
                     return self.create_csv_response(queryset, self.paginate_by)
-                return Response({'users': queryset}, template_name='users_list.html')
+                serializer = ListUserSerializer(queryset, many=True)
+                paginator = Paginator(serializer.data, self.paginate_by)
+                users = paginator.get_page(page)
+                return Response({'users': users}, template_name='users_list.html')
             else:
-                page = self.request.GET.get('page')
                 serializer = ListUserSerializer(queryset, many=True)
                 paginator = Paginator(serializer.data, self.paginate_by)
                 users = paginator.get_page(page)
                 return Response({'users': users}, template_name='users_list.html')
         else:
             return Response({'status': 'failed', 'errors': LOGIN_REQUIRED,
-                             'style': serializer.style}, template_name='error.html')
+                             'style': serializer.style}, template_name='401_error_page.html')
 
     def create_csv_response(self, queryset, paginate_by):
         """ function for creating csv file form queryset and
@@ -235,7 +257,7 @@ class ListUserView(ListAPIView):
         return response
 
 
-class AddDailyLogVieW(generics.CreateAPIView):
+class AddDailyLogView(APIView):
     permission_classes = [IsAuthenticated]
     """ class for add task manually"""
 
@@ -248,16 +270,15 @@ class AddDailyLogVieW(generics.CreateAPIView):
         date = request.data.get('date')
         project_obj = Project.objects.create(name=project)
         task_obj = Task.objects.create(project=project_obj, title=task)
-        daily_log_obj = UserDailyLogs.objects.create(
-            user=request.user, date=date, project_name=project_obj,
-            task=task_obj, description=description,
-            start_time=start_time, end_time=end_time
-        )
-        if daily_log_obj:
-            messages.success(self.request, USER_LOG_CREATED)
-            return redirect('mylog:daily_log')
-        messages.error(self.request, INVALID_DETAILS)
-        return redirect('mylog:daily_log')
+        try:
+            UserDailyLogs.objects.create(
+                user=request.user, date=date, project_name=project_obj,
+                task=task_obj, description=description,
+                start_time=start_time, end_time=end_time
+            )
+            return Response({'message': USER_LOG_CREATED, 'status': status.HTTP_201_CREATED})
+        except Exception as e:
+            return Response({'message': INVALID_DETAILS, 'status': status.HTTP_400_BAD_REQUEST})
 
 
 class UserDailyLogList(APIView):
@@ -280,4 +301,4 @@ class UserDailyLogList(APIView):
             users = paginator.get_page(page)
             return Response({'users': users}, template_name='user_daily_log_list.html')
         return Response({'status': 'failed', 'errors': LOGIN_REQUIRED,
-                         'style': serializer.style}, template_name='error.html')
+                         'style': serializer.style}, template_name='401_error_page.html')

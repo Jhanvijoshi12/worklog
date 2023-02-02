@@ -3,20 +3,14 @@
 {% load static %}
 {% block content %}
 
-<section class="vh-100" style="background-color: #eee;">
-  <div class="container-fluid h-100">
-    <div class="row d-flex justify-content-center align-items-center h-100">
-      <div class="col-lg-12 col-xl-11">
-        <div class="card text-black" style="border-radius: 25px;">
-          <div class="card-body p-md-5" style="background-color:#a1aff3">
-            <div class="row justify-content-center">
-              <div class="col-md-12 col-lg-12 ">
-
+<section class="" style="background-color: #eee;">
+      <!-- Main section starts -->
+            <div class="form-container">
                 <!-- nav bar section starts -->
                 <nav class="navbar navbar-light">
                       <header class="head">
                           <img id="log_image" src="https://sp-ao.shortpixel.ai/client/to_auto,q_lossless,ret_img,w_1578,h_880/https://www.soldevelo.com/blog/wp-content/uploads/How-to-utilize-Jiras-time-tracking-best1.jpeg" alt=""
-                               style="width:150px;margin-right:26px;" class="d-inline-block align-text-top">
+                               style="width:150px;margin-right:20px;" class="d-inline-block align-text-top">
                           <h1 id="header_id" class="fw-bold text-uppercase">WorkLog</h1>
                       </header>
                       <div class="nav-right">
@@ -25,19 +19,20 @@
                                     <a class="nav-link dropdown-toggle profileDropdown" id="profileDropdown" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         {% if request.user %}
                                             <img src="{% static 'images/single-user-icon.svg' %}" alt="profile-pic">
-                                            <span style="margin-left:10px;" class="fw-bold fs-5">{{ request.user.username }}</span>
+                                            <span style="margin-left:5px;" class="fw-bold fs-5">{{ request.user.username }}</span>
                                         {% endif %}
                                     </a>
 
                                     <div class="dropdown-menu user-profile" aria-labelledby="profileDropdown">
                                         <ul>
-                                            <li><a href="{% url 'mylog:daily_log_list' %}">
-                                                <span>My Tasks</span></a>
+                                            <li>
+                                                <a href="{% url 'mylog:dashboard' %}" class="btn btn-primary btn-sm fw-bold mt-3">
+                                                    Go to Dashboard</a>
                                             </li>
                                             <li>
                                                 <form method="post" class="mt-1" action="{% url 'mylog:logout' %}">
                                                     {% csrf_token %}
-                                                    <input type="submit" class="btn btn-success btn-sm" value="Logout">
+                                                    <input type="submit" class="btn btn-success btn-sm fw-bold" value="Logout">
                                                 </form>
                                             </li>
                                         </ul>
@@ -46,31 +41,24 @@
                             </div>
                       </div>
                 </nav>
-
                 <!-- nav bar section ends -->
+                <h3 class="fw-bold text-center" style="text-color:#6b25ef;">{{ user.username }}, Please update your daily work sheet.</h3>
 
-        <div class="">
-            <h3 class="fw-bold fst-italic text-center">{{ user.username }}, Please update your daily work sheet.</h3>
-            <div class="form-control mb-3" style="border-radius:30px;">
-                <h4 class="fw-bold fs-4 mb-3 text-center text-uppercase">If You do not have any project related task, Please add manually.</h4>
-                <button type="button" class="btn d-grid col-6 mx-auto mt-3" data-bs-toggle="modal"
-                    data-bs-target="#addTaskModal" onclick="addTask({{user.id}})">
-                <img src="{% static 'images/plus_tab.png' %}" style="width:40px;">
-                </button>
-            </div>
-            <form method="post" class="mt-3" id="logForm">
-              {% csrf_token %}
+                <!-- div section for add task manually starts -->
+                <div class="form-control mb-3">
+                    <h4 class="fw-bold fs-4 mb-3 text-center text-uppercase">If You do not have any project related task, Please add manually.</h4>
+                    <button type="button" class="btn d-grid col-6 mx-auto mt-3" data-bs-toggle="modal"
+                        data-bs-target="#addTaskModal" onclick="addTask({{user.id}})">
+                    <img src="{% static 'images/plus_tab.png' %}" style="width:40px;">
+                    </button>
+                </div>
+                <!-- div section for add task manually ends -->
+
+              <form method="post" class="mt-3" id="logForm">
+                {% csrf_token %}
                 <div class="mb-3" id="user-{{user.id}}">
-                    <div class="form-control fw-bold fs-5 mb-3 text-uppercase" id="user_id" style="border-radius:30px; text-align:left;">
-                        {% for user in serializer.fields.user.queryset %}
-                            {% if user.id == request.user.id %}
-                            <h5 class="fw-bold">User</h5>
-                                <input value="{{ user.username }}">
-                            {% endif %}
-                        {% endfor %}
-                    </div>
 
-                    <div class="form-control fw-bold fs-5 mb-3 text-uppercase project-name" id="project" style="border-radius:30px;">
+                    <div class="form-control fw-bold fs-5 mb-3 text-uppercase project-name" id="project">
                         <h5 class="fw-bold">Project Name</h5>
                         <select id="id_project_name" name="project_name">
                             {% for project in serializer.fields.project_name.queryset %}
@@ -78,7 +66,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="form-control fw-bold fs-5 mb-3 text-uppercase" id="task" style="border-radius:30px;">
+                    <div class="form-control fw-bold fs-5 mb-3 text-uppercase" id="task">
                         <h5 class="fw-bold">Task</h5>
                         <select id="id_task" name="task" onchange="setTaskId()">
                             {% for task in serializer.fields.task.queryset %}
@@ -87,20 +75,20 @@
                         </select>
                     </div>
 
-                    <div class="form-control fw-bold fs-5 mb-3 text-uppercase" id="date" style="border-radius:30px;">
+                    <div class="form-control fw-bold fs-5 mb-3 text-uppercase" id="date">
                         {% render_field serializer.date style=style %}
                     </div>
-                    <div class="form-control fw-bold fs-5 mb-3 text-uppercase" id="form-description" style="border-radius:30px;">
+                    <div class="form-control fw-bold fs-5 mb-3 text-uppercase" id="form-description">
                         {% render_field serializer.description style=style %}
                     </div>
                     <div class="row">
                         <div class="col">
-                            <div class="form-control fw-bold fs-5 text-uppercase" id="start_time" style="border-radius:30px;">
+                            <div class="form-control fw-bold fs-5 text-uppercase" id="start_time">
                                 {% render_field serializer.start_time style=style %}
                             </div>
                         </div>
                         <div class="col">
-                             <div class="form-control fw-bold fs-5 text-uppercase" id="end_time" style="border-radius:30px;">
+                             <div class="form-control fw-bold fs-5 text-uppercase" id="end_time">
                                 {% render_field serializer.end_time style=style %}
                             </div>
                         </div>
@@ -111,67 +99,107 @@
                     </div>
                     <!-- submit button ends -->
                   </div>
-            </form>
-            <!-- Add task modal starts -->
-            <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title text-uppercase" id="addTaskModalLabel">Add Daily log</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <form>
-                        <div class="col fw-bold fs-5">
-                        <label for="user" class="col-form-label">User :</label>
-                        <input type="text" class="form-control" id="form-user" value="{{user.username}}">
-                        </div>
-                        <div class="col fw-bold fs-5">
-                        <label for="project" class="col-form-label">Project Name :</label>
-                        <input type="text" class="form-control" id="form-project">
-                        </div>
-                      <div class="col fw-bold fs-5">
-                        <label for="date" class="col-form-label">Date :</label>
-                        <input type="date" class="form-control" id="form-date">
-                      </div>
-                        <div class="col fw-bold fs-5">
-                        <label for="task" class="col-form-label">Task title :</label>
-                        <input type="text" class="form-control" id="task-name">
-                      </div>
-                      <div class="col fw-bold fs-5">
-                        <label for="description" class="col-form-label">Description :</label>
-                        <textarea class="form-control" id="description-text"></textarea>
-                      </div>
-                        <div class="row">
-                            <div class="col fw-bold fs-5">
-                                <label for="start" class="col-form-label">Start Time :</label>
-                                <input type="time" class="form-control" id="start-time">
-                            </div>
-                            <div class="col fw-bold fs-5">
-                                <label for="end" class="col-form-label">End Time:</label>
-                                <input type="time" class="form-control" placeholder="hrs:min" id="end-time">
-                          </div>
-                        </div>
+              </form>
+            </div>
 
-                    </form>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="saveDailyLog()">Save</button>
+    <!-- Add task modal starts -->
+    <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-uppercase" id="addTaskModalLabel">Add Daily log</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form>
+                <div class="col fw-bold fs-5">
+                <label for="user" class="col-form-label">User :</label>
+                <input type="text" class="form-control" id="form-user" value="{{user.username}}">
+                </div>
+                <div class="col fw-bold fs-5">
+                <label for="project" class="col-form-label">Project Name :</label>
+                <input type="text" class="form-control" id="form-project">
+                </div>
+              <div class="col fw-bold fs-5">
+                <label for="date" class="col-form-label">Date :</label>
+                <input type="date" class="form-control" id="form-date">
+              </div>
+                <div class="col fw-bold fs-5">
+                <label for="task" class="col-form-label">Task title :</label>
+                <input type="text" class="form-control" id="task-name">
+              </div>
+              <div class="col fw-bold fs-5">
+                <label for="description" class="col-form-label">Description :</label>
+                <textarea class="form-control" id="description-text"></textarea>
+              </div>
+                <div class="row">
+                    <div class="col fw-bold fs-5">
+                        <label for="start" class="col-form-label">Start Time :</label>
+                        <input type="time" class="form-control" id="start-time">
+                    </div>
+                    <div class="col fw-bold fs-5">
+                        <label for="end" class="col-form-label">End Time:</label>
+                        <input type="time" class="form-control" placeholder="hrs:min" id="end-time">
                   </div>
                 </div>
-              </div>
-            </div>
-            <!-- Add task modal ends -->
-    </div>
-              </div>
-            </div>
+
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" onclick="saveDailyLog()">Save</button>
           </div>
         </div>
       </div>
     </div>
-  </div>
+    <!-- Add task modal ends -->
 </section>
+<style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+      }
+      .form-container {
+        width: 60%;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      label {
+        font-weight: bold;
+        margin-bottom: 10px;
+        display: block;
+      }
+      input[type="text"],
+      input[type="email"],
+      textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        border: 1px solid #cccccc;
+      }
+      input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #4caf50;
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      input[type="submit"]:hover {
+        background-color: #3e8e41;
+      }
+    </style>
+
 {% endblock %}
 {% block extra_js %}
 <script type="text/javascript">

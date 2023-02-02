@@ -59,19 +59,17 @@ function validate() {
     url: "{% url 'mylog:daily_log' %}",
     data: data,
     dataType: 'json',
-    success: function(response) {
-             if (response.status === 'success') {
-                alertify.set('notifier', 'position', 'top-right');
-                alertify.success("User Daily Log created Successfully!!")
-            }
-            else {
-              for (let key in response.errors) {
-                   let error_message = response.errors[key];
-                        alertify.set('notifier', 'position', 'top-right');
-                        alertify.error(error_message)
-                }
-    };
+    success: function(data){
+        if (data.status === 201) {
+            alertify.set('notifier', 'position', 'top-right');
+            alertify.success("User Daily Log created Successfully!!")
+        }
+        else if (data.status === 400) {
+            alertify.set('notifier', 'position', 'top-right');
+            alertify.error(data.message)
+        };
     }
+
    });
 }
 
@@ -97,16 +95,23 @@ function saveDailyLog() {
 
     $.ajax({
         type: 'post',
+        url: '/add/log/',
         data: {'user': user_id, 'project_name': project_name, 'date': date_id, 'task': task_name,
         'description': description_id, 'start_time': start_time_id, 'end_time': end_time_id, 'csrfmiddlewaretoken': csr},
-        url: '/add/log/',
         dataType: 'json',
         success: function(data){
+            if (data.status === 201) {
                 alertify.set('notifier', 'position', 'top-right');
-                alertify.success('User Daily Log is created successfully!!');
+                alertify.success(data.message);
                 $('#addTaskModal').modal('hide');
+            }
+            else if (data.status === 400) {
+                alertify.set('notifier', 'position', 'top-right');
+                alertify.error(data.message);
+                $('#addTaskModal').modal('hide');
+            }
         }
-    })
+});
 }
 
 // function for creating project by ajax call
@@ -215,3 +220,13 @@ function setTaskId() {
     });
 }
 });
+
+// function is called when you click on create_csv button
+function downloadcsv(){
+    document.getElementById('create_csv').value='True';
+    btn = $('#create_csv').val();
+    if (btn === 'True') {
+        alertify.set('notifier', 'position', 'top-right');
+        alertify.success("CSV file is created successfully!!");
+    }
+}

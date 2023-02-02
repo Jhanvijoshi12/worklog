@@ -4,7 +4,7 @@
 
 {% block content %}
 <section class="mt-5" style="background-color: #dee2e68c; border-radius:70px;">
-<div class="d-flex justify-content-center" style="height:45rem;">
+<div class="d-flex justify-content-center" style="height:50rem;">
     <div class="page-bg">
     <div class="wrapper" id="wrapper">
         <!-- Sidebar and content section -->
@@ -16,10 +16,9 @@
                         <div class="error-page flex-container">
                             <div class="error-page-content">
                                 <div class="img">
-                                    <img src="{% static 'images/403-image.svg' %}" style="margin-top:50%;" alt="Error">
+                                    <img src="https://www.elegantthemes.com/blog/wp-content/uploads/2019/12/401-error-wordpress-featured-image.jpg" alt="Error">
                                 </div>
-                                <h3>Access Denied</h3>
-                                <p>Required login to access this page </p>
+                                <h3 class="mt-3 fw-bold">Required login to access this page </h3>
                                 <a href="{% url 'mylog:login' %}" class="btn btn-primary fw-bold mt-3">Go to Login</a>
                             </div>
                         </div>

@@ -1,9 +1,10 @@
 INVALID_LOGIN_CREDENTIAL = "Invalid email and password!! Please check.."
-INVALID_DETAILS = "Please Enter a valid details"
+INVALID_DETAILS = "Please Check you entered all modal fields correctly!!"
 USER_EXISTS = "User with this details is already exists!!"
 USER_CREATED = "User Register Successfully!!"
 USER_LOGIN = "User Logged in Successfully!!"
 LOGIN_REQUIRED = 'Login Is Required!!'
+UNAUTHORIZED_USER = 'Oops!! You Do not have permission to access this page!!'
 USER_REGISTER_ERROR = "Please enter valid details to Register!!"
 USER_LOG_CREATED = "Your Daily Logs Added Successfully!!"
 USER_NOT_FOUND = 'A user with this email and password is not found.'

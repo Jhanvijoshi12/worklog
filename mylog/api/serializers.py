@@ -1,11 +1,8 @@
 from datetime import datetime, date
-
 from django.contrib.auth import authenticate, get_user_model
-from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
-from mylog.constants import INVALID_DETAILS, USER_NOT_FOUND, USER_REGISTER_ERROR
+from mylog.constants import USER_NOT_FOUND, USER_REGISTER_ERROR
 from mylog.models import UserDailyLogs, Project, CustomUser, Task
 
 User = get_user_model()
@@ -16,7 +13,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'first_name', 'last_name', 'group', 'email', 'password']
+        fields = ['username', 'first_name', 'last_name', 'email', 'password']
 
     def create(self, validated_data):
         user = CustomUser.objects.create_user(**validated_data)
@@ -50,7 +47,6 @@ class LoginSerializer(serializers.ModelSerializer):
 
 
 class UserLogSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), write_only=True)
     project_name = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all())
     task = serializers.PrimaryKeyRelatedField(queryset=Task.objects.all())
 
@@ -146,3 +142,5 @@ class UserDailyLogListSerializer(serializers.ModelSerializer):
             date.today(), obj.end_time) - datetime.combine(
             date.today(), obj.start_time))
         return total_hours
+
+

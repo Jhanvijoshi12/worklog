@@ -25,8 +25,9 @@
                         <div class="dropdown-menu user-profile" aria-labelledby="profileDropdown">
                             <ul style="opacity:1; transition: opacity 0.5s ease-in-out">
                                 {% if request.user.is_authenticated %}
-                                    <li><a href="{% url 'mylog:daily_log_list' %}">
-                                        <span>My Tasks</span></a>
+                                    <li>
+                                        <a href="{% url 'mylog:dashboard' %}" class="btn btn-primary btn-sm fw-bold mt-3">
+                                            Go to Dashboard</a>
                                     </li>
                                     <li>
                                         <form method="post" action="{% url 'mylog:logout' %}">
@@ -59,9 +60,6 @@
                     <button type="button" class="clear-filter btn-sm btn-secondary fs-10 fw-bold"
                     style="margin-left:10px;">Clear all</button>
                 </div>
-
-        <a href="{% url 'mylog:add_log' %}" class="btn btn-warning mt-2" data-bs-toggle="modal" type="button"
-                    data-bs-target="#addTaskModal" onclick="addTask({{user.id}})">{{ user.username }} - Create Your Daily Update</a>
         <!--inner content starts -->
         <div class="main-content-wrapper box-border admin-user-wrap">
             {% if users %}
@@ -141,58 +139,6 @@
     </div>
 </section>
 <!--inner content ends -->
-
-<!-- Add task modal starts -->
-<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title text-uppercase" id="addTaskModalLabel">Add Daily log</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form>
-            <div class="col fw-bold fs-5">
-            <label for="user" class="col-form-label">User :</label>
-            <input type="text" class="form-control" id="form-user" value="{{user.username}}">
-            </div>
-            <div class="col fw-bold fs-5">
-            <label for="project" class="col-form-label">Project Name :</label>
-            <input type="text" class="form-control" id="form-project">
-            </div>
-          <div class="col fw-bold fs-5">
-            <label for="date" class="col-form-label">Date :</label>
-            <input type="date" class="form-control" id="form-date">
-          </div>
-            <div class="col fw-bold fs-5">
-            <label for="task" class="col-form-label">Task title :</label>
-            <input type="text" class="form-control" id="task-name">
-          </div>
-          <div class="col fw-bold fs-5">
-            <label for="description" class="col-form-label">Description :</label>
-            <textarea class="form-control" id="description-text"></textarea>
-          </div>
-            <div class="row">
-                <div class="col fw-bold fs-5">
-                    <label for="start" class="col-form-label">Start Time :</label>
-                    <input type="time" class="form-control" id="start-time">
-                </div>
-                <div class="col fw-bold fs-5">
-                    <label for="end" class="col-form-label">End Time:</label>
-                    <input type="time" class="form-control" placeholder="hrs:min" id="end-time">
-              </div>
-            </div>
-
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" onclick="saveDailyLog()">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- Add task modal ends -->
 
 {% else %}
 <div class="container mt-5">
