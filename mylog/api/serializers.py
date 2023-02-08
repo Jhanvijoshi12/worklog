@@ -32,6 +32,7 @@ class LoginSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
+        breakpoint()
         email = attrs.get('email')
         password = attrs.get('password')
         
@@ -144,3 +145,13 @@ class UserDailyLogListSerializer(serializers.ModelSerializer):
         return total_hours
 
 
+class UpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'first_name', 'last_name']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']

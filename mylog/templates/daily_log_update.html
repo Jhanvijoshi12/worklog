@@ -24,18 +24,14 @@
                                     </a>
 
                                     <div class="dropdown-menu user-profile" aria-labelledby="profileDropdown">
-                                        <ul>
-                                            <li>
-                                                <a href="{% url 'mylog:dashboard' %}" class="btn btn-primary btn-sm fw-bold mt-3">
-                                                    Go to Dashboard</a>
-                                            </li>
-                                            <li>
-                                                <form method="post" class="mt-1" action="{% url 'mylog:logout' %}">
-                                                    {% csrf_token %}
-                                                    <input type="submit" class="btn btn-success btn-sm fw-bold" value="Logout">
-                                                </form>
-                                            </li>
-                                        </ul>
+                                        <div class="container">
+                                            <a href="{% url 'mylog:dashboard' %}" class="btn btn-primary btn-sm fw-bold mt-1">
+                                                Go to Dashboard</a>
+                                            <form method="post" class="mt-1" action="{% url 'mylog:logout' %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success btn-sm fw-bold" value="Logout">Logout</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

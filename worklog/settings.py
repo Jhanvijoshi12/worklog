@@ -148,6 +148,10 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
         'drf_excel.renderers.XLSXRenderer',
     ),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'knox.auth.TokenAuthentication',
+    ],
+
 }
 
 MESSAGE_TAGS = {

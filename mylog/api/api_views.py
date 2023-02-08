@@ -9,23 +9,24 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from knox.views import LoginView
-from rest_framework import generics, permissions, status
+from rest_framework import permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from mylog.api.serializers import (
     LoginSerializer, UserLogSerializer, RegisterSerializer,
-    ListUserSerializer, TaskSerializer, ProjectSerializer, UserDailyLogListSerializer,
+    ListUserSerializer, TaskSerializer, ProjectSerializer,
+    UserDailyLogListSerializer, UpdateSerializer, UserSerializer,
 )
 from mylog.constants import (
     USER_CREATED, USER_LOGIN,
     INVALID_LOGIN_CREDENTIAL, USER_LOG_CREATED,
     INVALID_DETAILS, DAILY_LOG_CSV_COLUMNS, LOGIN_REQUIRED, UNAUTHORIZED_USER
 )
-from mylog.models import UserDailyLogs, Project, Task
+from mylog.models import UserDailyLogs, Project, Task, CustomUser
 
 
 class GetOptionView(APIView):
@@ -302,3 +303,133 @@ class UserDailyLogList(APIView):
             return Response({'users': users}, template_name='user_daily_log_list.html')
         return Response({'status': 'failed', 'errors': LOGIN_REQUIRED,
                          'style': serializer.style}, template_name='401_error_page.html')
+
+
+# API based views
+class RegisterApiView(APIView):
+    # serializer_class = RegisterSerializer
+    """
+    ## Create user Endpoint: register/  ##
+    ## Payload ##
+        {
+            "username": "test_1",
+            "first_name": "test_1",
+            "last_name": "test_surname",
+            "email": "test_1@gmail.com",
+            "password": 12345
+        }
+    ## Response ##
+        {
+            "username": "test_1",
+            "first_name": "test_1",
+            "last_name": "test_surname",
+            "email": "test_1@gmail.com",
+            "password": "pbkdf2_sha256$390000$oK4yneA0BDn2MOFzgQirrq$vCOgwdp062yDWXwkLAi4mXu1o3AZzfoNOSLwEQwVkKY="
+        }
+    """
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=HTTPStatus.CREATED)
+        return Response({'error': serializer.errors})
+
+
+class UpdateApiView(APIView):
+    """
+    ## Change User Endpoint:  update/<int:pk>/  ##
+    *Request
+    Method: PUT
+    ## payload ##
+    {
+        "username": "user80",
+        "first_name": "user80",
+        "last_name": "jose"
+    }
+    ## Response ##
+    {
+        "username": "user80",
+        "first_name": "user80",
+        "last_name": "jose"
+    }
+    """
+    def put(self, request, pk=None):
+        breakpoint()
+        """
+        for updating user data with fields passed into serializer class
+        if want to update data partially simply define patch method 
+        and add partial=True into serializer.
+        but if you use UpdateApiView it will have both put, patch method, so you do not need to write this explicit.
+        """
+        data = request.data
+        user = CustomUser.objects.get(id=pk)
+        serializer = UpdateSerializer(user, data=data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=HTTPStatus.OK)
+        return Response({"Error": serializer.errors})
+
+
+class LoginApiView(LoginView):
+    """
+    ## Login user Endpoint: user/login/ ##
+    ## Payload ##
+        {
+            "email": "test_12@gmail.com",
+            "password": 12345
+        }
+    ## Response ##
+        {
+            "Successfully Login": {
+                "email": "test_12@gmail.com",
+                "password": "12345"
+            }
+        }
+
+    """
+    permission_classes = (AllowAny, )
+
+    def post(self, request, format=None):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            login(request, user)
+            return Response({'Successfully Login': serializer.data}, status=HTTPStatus.OK)
+        return Response(serializer.errors, status=HTTPStatus.FORBIDDEN)
+
+
+class ListApiView(ListAPIView):
+    """
+    ## User List Endpoint ##
+    ## Response ##
+    {
+    "count": 3,
+    "next": null,
+    "previous": null,
+        "results": [
+            {
+                "id": 3,
+                "username": "admin",
+                "first_name": "",
+                "last_name": "",
+                "email": "admin@gmail.com"
+            },
+            {
+                "id": 31,
+                "username": "test_1",
+                "first_name": "test_1",
+                "last_name": "test_surname",
+                "email": "test_1@gmail.com"
+            },
+            {
+                "id": 32,
+                "username": "test_123",
+                "first_name": "test_123",
+                "last_name": "test_surname",
+                "email": "test_12@gmail.com"
+            }
+        ]
+    }
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
