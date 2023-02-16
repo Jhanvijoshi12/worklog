@@ -8,6 +8,7 @@ from django.core.validators import EMPTY_VALUES
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
+from knox.models import AuthToken
 from knox.views import LoginView
 from rest_framework import permissions, status
 from rest_framework.decorators import api_view
@@ -26,6 +27,7 @@ from mylog.constants import (
     INVALID_LOGIN_CREDENTIAL, USER_LOG_CREATED,
     INVALID_DETAILS, DAILY_LOG_CSV_COLUMNS, LOGIN_REQUIRED, UNAUTHORIZED_USER
 )
+from mylog.jobs import send_email_to_user
 from mylog.models import UserDailyLogs, Project, Task, CustomUser
 
 
@@ -58,8 +60,16 @@ class RegistrationView(APIView):
 
     def post(self, request, format=None):
         serializer = RegisterSerializer(data=request.data)  # serializer obj and send parsed data
+        data = {
+            'username': request.data['username'],
+            'email': request.data['email']
+        }
         if serializer.is_valid():
             serializer.save()
+            # for sending email to register user.
+            send_email_to_user.delay(
+                data['email'], data, request.scheme, request.get_host()
+            )
             messages.success(self.request, USER_CREATED)
             return redirect(reverse('mylog:login'))
         else:
@@ -81,14 +91,16 @@ class UserLoginView(LoginView):
         return Response({'serializer': serializer, 'style': serializer.style})
 
     def post(self, request, *args, **kwargs):
-        serializer = LoginSerializer(data=request.data)
+        serializer = LoginSerializer(data=request.data, context={'request': request})
         try:
             serializer.is_valid()
             if 'user' in serializer.validated_data:
                 user = serializer.validated_data['user']
                 login(request, user)
+                _, token = AuthToken.objects.create(user)
                 messages.success(self.request, USER_LOGIN)
                 if request.user.groups.filter(name="Admin").exists():
+                    Response({'user': user, 'token': token})
                     return redirect('mylog:get_admin_option')
                 elif request.user.groups.filter(name="Software Engineer").exists():
                     return redirect('mylog:daily_log')
@@ -128,9 +140,8 @@ class UserDailyLogsView(APIView):
         serializer = UserLogSerializer()
         if request.user.is_authenticated:
             return Response({'serializer': serializer, 'style': serializer.style})
-        else:
-            return Response({'status': 'failed', 'errors': LOGIN_REQUIRED,
-                             'style': serializer.style}, template_name='401_error_page.html')
+        return Response({'status': 'failed', 'errors': LOGIN_REQUIRED,
+                         'style': serializer.style}, template_name='401_error_page.html')
 
     def post(self, request, *args, **kwargs):
         data = request.data.copy()
@@ -354,7 +365,6 @@ class UpdateApiView(APIView):
     }
     """
     def put(self, request, pk=None):
-        breakpoint()
         """
         for updating user data with fields passed into serializer class
         if want to update data partially simply define patch method 

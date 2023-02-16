@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django_filters',
     'import_export',
     'knox',
+    'django_rq',
     # 'widget_tweaks'
 ]
 
@@ -162,11 +163,18 @@ MESSAGE_TAGS = {
     messages.ERROR: 'alert-danger',
 }
 
-# Date formats for spreadsheet
-DRF_EXCEL_DATETIME_FORMAT = 'mm-dd-yy h:mm AM/PM'
-DRF_EXCEL_DATE_FORMAT = 'mm-dd-yy'
-DRF_EXCEL_TIME_FORMAT = 'h:mm AM/PM'
+# configure queues for django RQ
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+    },
+}
 
-# Number formats
-DRF_EXCEL_INTEGER_FORMAT = '0%'
-DRF_EXCEL_DECIMAL_FORMAT = '0.00E+00'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'jhanvi.joshi@trootech.com'
+EMAIL_HOST_PASSWORD = '$a-hMKDm6$M+'

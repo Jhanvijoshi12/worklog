@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate, get_user_model, login
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from mylog.constants import USER_NOT_FOUND, USER_REGISTER_ERROR
@@ -32,18 +32,20 @@ class LoginSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        breakpoint()
         email = attrs.get('email')
         password = attrs.get('password')
-        
         if email and password:
             user = CustomUser.objects.filter(email=email).last()
-            # authenticate user by username and password after
-            # conversion of password into hash format
-            auth_user = authenticate(username=user.username, password=password)
-            if auth_user is None:
+            if user is not None and user.check_password(password):
+                # authenticate user by username and password after
+                # conversion of password into hash format
+                auth_user = authenticate(username=user.username, password=password)
+                # login(self.context.get("request"), auth_user)
+                if auth_user is None:
+                    raise serializers.ValidationError(USER_NOT_FOUND)
+                attrs['user'] = auth_user
+            else:
                 raise serializers.ValidationError(USER_NOT_FOUND)
-            attrs['user'] = auth_user
         return attrs
 
 
