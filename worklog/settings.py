@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 
 from django.contrib import messages
@@ -153,6 +153,10 @@ REST_FRAMEWORK = {
         'knox.auth.TokenAuthentication',
     ],
 
+}
+
+REST_KNOX = {
+    'TOKEN_TTL': timedelta(days=7)
 }
 
 MESSAGE_TAGS = {

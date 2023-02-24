@@ -4,47 +4,26 @@
 {% block content %}
 
 <!-- nav bar section starts -->
-<nav class="navbar navbar-light bg-light">
-  <div class="container-fluid">
-      <header class="head">
-          <img id="log_image" src="https://sp-ao.shortpixel.ai/client/to_auto,q_lossless,ret_img,w_1578,h_880/https://www.soldevelo.com/blog/wp-content/uploads/How-to-utilize-Jiras-time-tracking-best1.jpeg" alt=""
-               style="width:120px;margin-right:26px;" class="d-inline-block align-text-top">
-          <h1 id="header_id" class="fw-bold text-uppercase">WorkLog</h1>
-      </header>
-      <div class="order-1">
-        <a href="{% url 'mylog:get_admin_option' %}" class="btn btn-warning fw-bold">Go Back</a>
-          <div class="nav-right">
-                <div class="navbar-nav ml-auto">
-                    <div class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle profileDropdown" id="profileDropdown" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            {% if request.user %}
-                                <img src="{% static 'images/single-user-icon.svg' %}" alt="profile-pic">
-                                <span style="margin-left:10px;">{{ request.user.username }}</span>
-                            {% endif %}
-                        </a>
-                        <div class="dropdown-menu user-profile" aria-labelledby="profileDropdown">
-                            <ul style="opacity:1; transition: opacity 0.5s ease-in-out">
-                                {% if request.user.is_authenticated %}
-                                    <li>
-                                        <a href="{% url 'mylog:dashboard' %}" class="btn btn-primary btn-sm fw-bold mt-3">
-                                            Go to Dashboard</a>
-                                    </li>
-                                    <li>
-                                        <form method="post" action="{% url 'mylog:logout' %}">
-                                        {% csrf_token %}
-                                        <input type="submit" class="btn btn-success btn-sm" value="Logout">
-                                        </form>
-                                    </li>
-                                {% endif %}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-          </div>
-      </div>
-  </div>
+<nav class="navbar navbar-dark bg-dark">
+  <!-- Navbar content -->
+    {% if request.user.is_authenticated %}
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold fs-4 " href="#">
+                <img src="{% static 'images/user_with_check-white.svg' %}">   {{ request.user.username }}</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+              <div class="navbar-nav">
+                <a class="nav-link active fw-bold" aria-current="page" href="{% url 'mylog:get_admin_option' %}">&laquo; Go Back</a>
+                <a class="nav-link fw-bold" href="{% url 'mylog:dashboard' %}">
+                    <img src="{% static 'images/dashboard-icon-white.svg' %}"> Go To DashBoard</a>
+                <a class="nav-link fw-bold" href="{% url 'mylog:logout' %}"> <img src="{% static 'images/logout.svg' %}"> Logout</a>
+              </div>
+            </div>
+        </div>
+    {% endif %}
 </nav>
-
 <!-- nav bar section ends -->
 
 <section class="" style="background-color: #6c757d57;">

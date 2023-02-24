@@ -17,9 +17,10 @@ class CustomUser(AbstractUser):
 
 class Project(models.Model):
     name = models.CharField(_("project"), max_length=50)
+    last_modified = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return "{} - {}".format(self.name, self.last_modified)
 
 
 class Task(models.Model):

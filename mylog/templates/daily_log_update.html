@@ -9,9 +9,8 @@
                 <!-- nav bar section starts -->
                 <nav class="navbar navbar-light">
                       <header class="head">
-                          <img id="log_image" src="https://sp-ao.shortpixel.ai/client/to_auto,q_lossless,ret_img,w_1578,h_880/https://www.soldevelo.com/blog/wp-content/uploads/How-to-utilize-Jiras-time-tracking-best1.jpeg" alt=""
+                          <img id="log_image" src="{% static 'images/dashboard-img.png' %}" alt=""
                                style="width:150px;margin-right:20px;" class="d-inline-block align-text-top">
-                          <h1 id="header_id" class="fw-bold text-uppercase">WorkLog</h1>
                       </header>
                       <div class="nav-right">
                             <div class="navbar-nav ml-auto">
@@ -25,11 +24,13 @@
 
                                     <div class="dropdown-menu user-profile" aria-labelledby="profileDropdown">
                                         <div class="container">
-                                            <a href="{% url 'mylog:dashboard' %}" class="btn btn-primary btn-sm fw-bold mt-1">
+                                            <a href="{% url 'mylog:dashboard' %}" class="btn btn-primary btn-md fw-bold mt-1">
+                                                <img src="{% static 'images/dashboard-icon-white.svg' %}">
                                                 Go to Dashboard</a>
                                             <form method="post" class="mt-1" action="{% url 'mylog:logout' %}">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-success btn-sm fw-bold" value="Logout">Logout</button>
+                                                <button type="submit" class="btn btn-warning btn-md">
+                                                <img src="{% static 'images/logout.svg' %}">Logout</button>
                                             </form>
                                         </div>
                                     </div>
@@ -38,7 +39,8 @@
                       </div>
                 </nav>
                 <!-- nav bar section ends -->
-                <h3 class="fw-bold text-center" style="text-color:#6b25ef;">{{ request.user.username }}, Please update your daily work sheet.</h3>
+                <h3 class="fw-bold text-center" style="text-color:#6b25ef;"><span style="color:#fd7e14;">{{ request.user.username }},</span>
+                    Please update your daily work sheet.</h3>
 
                 <!-- div section for add task manually starts -->
                 <div class="form-control mb-3">

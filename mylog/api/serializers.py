@@ -1,10 +1,12 @@
 from datetime import datetime, date
-from django.contrib.auth import authenticate, get_user_model, login
+from django.contrib.auth import authenticate, get_user_model
+from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from mylog.constants import USER_NOT_FOUND, USER_REGISTER_ERROR
 from mylog.models import UserDailyLogs, Project, CustomUser, Task
-
+from mylog.signals import update_project_last_modified
+from django.utils.translation import gettext_lazy as _
 User = get_user_model()
 
 
@@ -13,7 +15,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'first_name', 'last_name', 'email', 'password']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'password']
 
     def create(self, validated_data):
         user = CustomUser.objects.create_user(**validated_data)
@@ -23,6 +25,13 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        label=_("Password"),
+        style={'input_type': 'password'},
+        trim_whitespace=False,
+        write_only=True
+    )
+
     class Meta:
         model = CustomUser
         fields = ['email', 'password']
@@ -36,17 +45,31 @@ class LoginSerializer(serializers.ModelSerializer):
         password = attrs.get('password')
         if email and password:
             user = CustomUser.objects.filter(email=email).last()
-            if user is not None and user.check_password(password):
+            if user is not None:
                 # authenticate user by username and password after
                 # conversion of password into hash format
                 auth_user = authenticate(username=user.username, password=password)
-                # login(self.context.get("request"), auth_user)
                 if auth_user is None:
                     raise serializers.ValidationError(USER_NOT_FOUND)
                 attrs['user'] = auth_user
             else:
                 raise serializers.ValidationError(USER_NOT_FOUND)
         return attrs
+
+
+class ForgotPasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['email']
+
+
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'password']
+        # extra_kwargs = {
+        #     'email': {'read_only': True}
+        # }
 
 
 class UserLogSerializer(serializers.ModelSerializer):
@@ -75,7 +98,7 @@ class UserSearchSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['name']
+        fields = ['id', 'name']
 
     def create(self, validated_data):
         return Project.objects.create(**validated_data)
@@ -101,7 +124,8 @@ class ListUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserDailyLogs
-        fields = ['id', 'user', 'email', 'date', 'project_name', 'task', 'description', 'start_time', 'end_time', 'total_hours']
+        fields = ['id', 'user', 'email', 'date', 'project_name', 'task', 'description', 'start_time', 'end_time',
+                  'total_hours']
 
     def get_project_name(self, obj):
         return obj.project_name.name
@@ -157,3 +181,37 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'first_name', 'last_name', 'email']
+
+
+class AddMultipleTaskSerializer(serializers.ListSerializer):
+    """ListSerializer for effectively create multiple task objects"""
+
+    def create(self, validated_data) -> Task:
+        projects = [Task(**item) for item in validated_data]
+        try:
+            return Task.objects.bulk_create(projects)
+        except IntegrityError as e:
+            raise serializers.ValidationError(e)
+
+
+class AddTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ['id', 'project', 'title']
+        list_serializer_class = AddMultipleTaskSerializer
+
+
+class CreateMultipleLogSerializer(serializers.ListSerializer):
+    def create(self, validated_data) -> UserDailyLogs:
+        logs = [UserDailyLogs(**item) for item in validated_data]
+        try:
+            return UserDailyLogs.objects.bulk_create(logs)
+        except IntegrityError as e:
+            raise serializers.ValidationError(e)
+
+
+class CreateLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDailyLogs
+        fields = ['id', 'user', 'date', 'project_name', 'task', 'description', 'start_time', 'end_time']
+        list_serializer_class = CreateMultipleLogSerializer
